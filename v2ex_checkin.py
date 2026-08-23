@@ -232,23 +232,15 @@ def main():
 
     log("系统", f"完成：{ok}/{len(accounts)} 成功")
 
-    # Telegram 通知（卡片式排版）
-    now_bj = datetime.now(timezone(timedelta(hours=8)))
-    sep = "━━━━━━━━━━━━━━━━━━"
-    icon = "🎯" if ok == len(accounts) else "⚠️"
+    icon = "成功" if ok == len(accounts) else "部分成功"
 
-    msg = f"<b>{icon} V2EX 每日签到</b>\n"
-    msg += f"{sep}\n"
-    msg += f"⏰ {now_bj:%Y-%m-%d %H:%M}\n"
-    msg += f"📊 成功 <b>{ok}</b>/<b>{len(accounts)}</b>\n"
-    msg += f"{sep}\n"
+    msg = f"V2EX 签到 · {icon} · {ok}/{len(accounts)}\n"
     msg += "\n".join(results)
-    msg += f"\n{sep}\n"
+
     if coins:
         coin_str = "，".join(f"{v} {k}" for k, v in coins.items())
-        msg += f"💎 今日收获 · <b>{coin_str}</b>"
-    else:
-        msg += "💎 今日收获 · 无"
+        msg += f"\n{coin_str}"
+
     send_telegram(msg)
 
     sys.exit(0 if ok == len(accounts) else 1)
