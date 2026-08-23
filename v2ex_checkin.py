@@ -203,8 +203,6 @@ def checkin(name, cookie):
 
     log(name, "OK 签到成功")
     return True, "签到成功（奖励信息未识别）"
-
-
 def main():
     accounts = load_config()
     if not accounts:
@@ -212,33 +210,35 @@ def main():
 
     log("系统", f"开始签到，共 {len(accounts)} 个账号")
     ok = 0
-    results = []
     coins = {}  # {币种: 数量} 汇总今天新领取的
+
     for name, cookie in accounts:
         try:
             success, reward = checkin(name, cookie)
+
             if success:
                 ok += 1
-                results.append(f"✅ <b>{name}</b>\n   └ {reward}")
+                log(name, f"签到成功：{reward}")
+
                 # 提取奖励数量汇总
                 for amt, unit in re.findall(r'(\d+)\s*(铜币|银币|金币)', reward):
                     coins[unit] = coins.get(unit, 0) + int(amt)
+
             else:
-                results.append(f"❌ <b>{name}</b>\n   └ {reward}")
+                log(name, f"签到失败：{reward}")
+
         except requests.RequestException as e:
-            log(name, f"X 网络错误: {e}")
-            results.append(f"❌ <b>{name}</b>\n   └ 网络错误")
+            log(name, f"网络错误: {e}")
+
         time.sleep(2)  # 多账号间隔，避免请求过快
 
     log("系统", f"完成：{ok}/{len(accounts)} 成功")
 
-    icon = "成功" if ok == len(accounts) else "部分成功"
-
-    msg = f"V2EX 签到 · {icon} · {ok}/{len(accounts)}\n"
-    msg += "\n".join(results)
+    # Telegram 仅发送汇总
+    msg = f"V2EX 签到 {ok}/{len(accounts)}"
 
     if coins:
-        coin_str = "，".join(f"{v} {k}" for k, v in coins.items())
+        coin_str = "，".join(f"+{v} {k}" for k, v in coins.items())
         msg += f"\n{coin_str}"
 
     send_telegram(msg)
